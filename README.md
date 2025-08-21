@@ -35,7 +35,7 @@ SignalBeam follows a **modular architecture** with clear separation between edge
 
 ### C1 Model – System Context  
 
-<img width="677" height="1139" alt="image" src="https://github.com/user-attachments/assets/1e0ed9a8-f295-4045-9a2f-efca107d05c4" />
+<img width="676" height="679" alt="image" src="https://github.com/user-attachments/assets/d399aa19-227a-49cf-859f-e974f861c2c8" />
 
 ### C2 Model – Container Diagram  
 
