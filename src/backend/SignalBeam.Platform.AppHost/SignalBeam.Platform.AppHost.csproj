@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.2.1" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>031b2e7c-d5ed-4eac-b9b5-12b39559eba9</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SignalBeam.Platform.ApiService\SignalBeam.Platform.ApiService.csproj" />
+    <ProjectReference Include="..\SignalBeam.Platform.Gateway\SignalBeam.Platform.Gateway.csproj" />
+    <ProjectReference Include="..\SignalBeam.Platform.Auth\SignalBeam.Platform.Auth.csproj" />
+    <ProjectReference Include="..\SignalBeam.Platform.Ingestion\SignalBeam.Platform.Ingestion.csproj" />
+    <ProjectReference Include="..\SignalBeam.Platform.ControlPlane\SignalBeam.Platform.ControlPlane.csproj" />
+    <ProjectReference Include="..\SignalBeam.Platform.EdgeCollectors\SignalBeam.Platform.EdgeCollectors.csproj" />
+    <ProjectReference Include="..\SignalBeam.Platform.OtelCloud\SignalBeam.Platform.OtelCloud.csproj" />
+    <ProjectReference Include="..\SignalBeam.Platform.MetricsProcessor\SignalBeam.Platform.MetricsProcessor.csproj" />
+    <ProjectReference Include="..\SignalBeam.Platform.RulesEngine\SignalBeam.Platform.RulesEngine.csproj" />
+    <ProjectReference Include="..\SignalBeam.Platform.Alerting\SignalBeam.Platform.Alerting.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.2.1" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="9.2.1" />
+    <PackageReference Include="Aspire.Hosting.Redis" Version="9.2.1" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="9.2.1" />
+  </ItemGroup>
+
+</Project>

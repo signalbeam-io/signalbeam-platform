@@ -1,0 +1,6 @@
+@SignalBeam.Platform.OtelCloud_HostAddress = http://localhost:5235
+
+GET {{SignalBeam.Platform.OtelCloud_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

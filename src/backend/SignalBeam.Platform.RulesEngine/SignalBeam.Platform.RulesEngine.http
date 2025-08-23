@@ -1,0 +1,6 @@
+@SignalBeam.Platform.RulesEngine_HostAddress = http://localhost:5231
+
+GET {{SignalBeam.Platform.RulesEngine_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

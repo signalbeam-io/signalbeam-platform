@@ -1,0 +1,57 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'signalbeam-gateway'
+    static_configs:
+      - targets: ['host.docker.internal:7001']
+    metrics_path: '/metrics'
+    
+  - job_name: 'signalbeam-auth'
+    static_configs:
+      - targets: ['host.docker.internal:7002']
+    metrics_path: '/metrics'
+
+  - job_name: 'signalbeam-ingestion'
+    static_configs:
+      - targets: ['host.docker.internal:7003']
+    metrics_path: '/metrics'
+
+  - job_name: 'signalbeam-control-plane'
+    static_configs:
+      - targets: ['host.docker.internal:7004']
+    metrics_path: '/metrics'
+
+  - job_name: 'signalbeam-edge-collectors'
+    static_configs:
+      - targets: ['host.docker.internal:7005']
+    metrics_path: '/metrics'
+
+  - job_name: 'signalbeam-otel-cloud'
+    static_configs:
+      - targets: ['host.docker.internal:7006']
+    metrics_path: '/metrics'
+
+  - job_name: 'signalbeam-metrics-processor'
+    static_configs:
+      - targets: ['host.docker.internal:7007']
+    metrics_path: '/metrics'
+
+  - job_name: 'signalbeam-rules-engine'
+    static_configs:
+      - targets: ['host.docker.internal:7008']
+    metrics_path: '/metrics'
+
+  - job_name: 'signalbeam-alerting'
+    static_configs:
+      - targets: ['host.docker.internal:7009']
+    metrics_path: '/metrics'

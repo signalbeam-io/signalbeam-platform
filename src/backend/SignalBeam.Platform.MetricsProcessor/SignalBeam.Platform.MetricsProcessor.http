@@ -1,0 +1,6 @@
+@SignalBeam.Platform.MetricsProcessor_HostAddress = http://localhost:5086
+
+GET {{SignalBeam.Platform.MetricsProcessor_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

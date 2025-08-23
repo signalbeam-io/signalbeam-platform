@@ -1,0 +1,6 @@
+@SignalBeam.Platform.Alerting_HostAddress = http://localhost:5222
+
+GET {{SignalBeam.Platform.Alerting_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
