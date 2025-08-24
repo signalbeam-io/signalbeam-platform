@@ -1,0 +1,85 @@
+@startuml C2-SignalBeam-Container
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Container diagram for SignalBeam Observability Platform
+
+Person(admin, "Platform Administrator")
+Person(developer, "Developer") 
+Person(operator, "Operations Team")
+
+System_Boundary(signalbeam, "SignalBeam Platform") {
+    Container(frontend, "SignalBeam UI", "React, TypeScript", "Web application providing dashboards, log/metric/trace visualization, and platform configuration")
+    Container(gateway, "API Gateway", "YARP, .NET 9", "Routes requests to appropriate microservices, handles load balancing and authentication")
+    
+    Container(control_plane, "Control Plane API", "GraphQL, HotChocolate, .NET 9", "Provides unified GraphQL API for frontend, manages dashboards, alerts, and user queries")
+    Container(ingestion, "Ingestion Service", ".NET 9, ClickHouse", "Receives and processes telemetry data, performs bulk inserts to time-series database")
+    Container(edge_collectors, "Edge Collectors Service", ".NET 9, SignalR", "Manages edge collectors, handles registration, configuration, and real-time communication")
+    Container(otel_cloud, "OTel Cloud Service", ".NET 9", "Receives OpenTelemetry data via HTTP/JSON endpoints, processes and forwards to ingestion")
+    Container(data_processor, "Data Processor", ".NET 9", "Real-time processing of metrics and traces, aggregations, transformations")
+    Container(rules_engine, "Rules Engine", ".NET 9", "Evaluates alerting rules, detects anomalies, triggers alerts based on telemetry patterns")
+    Container(alerting, "Alerting Service", ".NET 9", "Manages alert delivery through multiple channels (email, Slack, PagerDuty)")
+    
+    ContainerDb(clickhouse, "ClickHouse", "Time-series Database", "Stores logs, metrics, and traces data optimized for analytical queries")
+    ContainerDb(postgres, "PostgreSQL", "Relational Database", "Stores metadata: dashboards, alerts, users, collector configurations")
+    Container(redis, "Redis", "Cache & Session Store", "Caches frequently accessed data, stores user sessions")
+    ContainerQueue(rabbitmq, "RabbitMQ", "Message Queue", "Handles asynchronous processing between microservices")
+}
+
+System_Ext(applications, "Monitored Applications")
+System_Ext(infrastructure, "Infrastructure Components")
+System_Ext(edge_devices, "Edge/IoT Devices")
+System_Ext(notification_systems, "Notification Systems")
+System_Ext(auth_provider, "Authentication Provider")
+
+' User interactions
+Rel(admin, frontend, "Manages platform via web UI", "HTTPS")
+Rel(developer, frontend, "Views observability data", "HTTPS")
+Rel(operator, frontend, "Monitors alerts and system health", "HTTPS")
+
+' Frontend to backend
+Rel(frontend, gateway, "Makes API requests", "HTTPS/GraphQL")
+
+' Gateway routing
+Rel(gateway, control_plane, "Routes GraphQL queries", "HTTP")
+Rel(gateway, edge_collectors, "Routes collector management", "HTTP")
+Rel(gateway, ingestion, "Routes data ingestion", "HTTP")
+
+' Control Plane interactions
+Rel(control_plane, postgres, "Stores/retrieves dashboards, alerts", "TCP")
+Rel(control_plane, clickhouse, "Queries observability data", "TCP")
+Rel(control_plane, edge_collectors, "Gets collector status", "HTTP")
+
+' Data ingestion flow
+Rel(applications, otel_cloud, "Sends OpenTelemetry data", "HTTP/JSON")
+Rel(infrastructure, ingestion, "Sends metrics/logs", "HTTP")
+Rel(edge_devices, edge_collectors, "Connects via SignalR", "WebSocket")
+
+Rel(otel_cloud, rabbitmq, "Publishes telemetry events", "AMQP")
+Rel(ingestion, clickhouse, "Bulk inserts telemetry data", "TCP")
+Rel(ingestion, rabbitmq, "Consumes telemetry events", "AMQP")
+
+' Edge collectors flow
+Rel(edge_collectors, postgres, "Stores collector metadata", "TCP")
+Rel(edge_collectors, rabbitmq, "Publishes collector data", "AMQP")
+
+' Data processing flow
+Rel(data_processor, rabbitmq, "Consumes raw telemetry", "AMQP")
+Rel(data_processor, clickhouse, "Stores processed metrics", "TCP")
+Rel(data_processor, rules_engine, "Triggers rule evaluation", "HTTP")
+
+' Alerting flow
+Rel(rules_engine, postgres, "Retrieves alert rules", "TCP")
+Rel(rules_engine, clickhouse, "Queries telemetry data", "TCP")
+Rel(rules_engine, alerting, "Triggers alert notifications", "HTTP")
+Rel(alerting, notification_systems, "Sends notifications", "HTTP/SMTP")
+
+' Authentication
+Rel(gateway, auth_provider, "Validates tokens", "HTTP")
+
+' Caching
+Rel(control_plane, redis, "Caches query results", "TCP")
+Rel(gateway, redis, "Stores sessions", "TCP")
+
+@enduml

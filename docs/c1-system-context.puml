@@ -1,0 +1,31 @@
+@startuml C1-SignalBeam-SystemContext
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title System Context diagram for SignalBeam Observability Platform
+
+Person(admin, "Platform Administrator", "Manages SignalBeam platform, configures collectors, creates dashboards and alerts")
+Person(developer, "Developer", "Views application metrics, logs, and traces for debugging and monitoring")
+Person(operator, "Operations Team", "Monitors system health, responds to alerts, manages incidents")
+
+System(signalbeam, "SignalBeam Platform", "Cloud-native observability platform for collecting, processing, and visualizing logs, metrics, and traces")
+
+System_Ext(applications, "Monitored Applications", "Applications being monitored that send telemetry data")
+System_Ext(infrastructure, "Infrastructure Components", "Servers, containers, databases, and other infrastructure sending metrics")
+System_Ext(edge_devices, "Edge/IoT Devices", "Edge collectors running on remote devices and IoT sensors")
+System_Ext(notification_systems, "Notification Systems", "Email, Slack, PagerDuty, SMS services for alerting")
+System_Ext(auth_provider, "Authentication Provider", "External authentication service (Auth0, Azure AD, etc.)")
+
+Rel(admin, signalbeam, "Configures platform, manages collectors, creates dashboards")
+Rel(developer, signalbeam, "Views logs, metrics, traces for debugging")
+Rel(operator, signalbeam, "Monitors alerts, system health, responds to incidents")
+
+Rel(applications, signalbeam, "Sends telemetry data (OpenTelemetry, logs)")
+Rel(infrastructure, signalbeam, "Sends infrastructure metrics and logs")
+Rel(edge_devices, signalbeam, "Sends IoT/edge telemetry data")
+
+Rel(signalbeam, notification_systems, "Sends alerts and notifications")
+Rel(signalbeam, auth_provider, "Authenticates users")
+
+@enduml

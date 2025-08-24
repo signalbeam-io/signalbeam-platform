@@ -35,11 +35,11 @@ SignalBeam follows a **modular architecture** with clear separation between edge
 
 ### C1 Model – System Context  
 
-<img width="676" height="679" alt="image" src="https://github.com/user-attachments/assets/d399aa19-227a-49cf-859f-e974f861c2c8" />
+![C1 System Context](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/signalbeam-io/signalbeam-platform/main/docs/c1-system-context.puml)
 
 ### C2 Model – Container Diagram  
 
-<img width="871" height="1116" alt="image" src="https://github.com/user-attachments/assets/95551862-f9da-4b00-87ae-344dd55eab9d" />
+![C2 Container Diagram](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/signalbeam-io/signalbeam-platform/main/docs/c2-container-diagram.puml)
 
 
 
