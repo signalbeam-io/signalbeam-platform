@@ -24,7 +24,7 @@ System_Boundary(signalbeam, "SignalBeam Platform") {
     ContainerDb(clickhouse, "ClickHouse", "Time-series Database", "Stores logs, metrics, and traces data optimized for analytical queries")
     ContainerDb(postgres, "PostgreSQL", "Relational Database", "Stores metadata: dashboards, alerts, users, collector configurations")
     Container(redis, "Redis", "Cache & Session Store", "Caches frequently accessed data, stores user sessions")
-    ContainerQueue(rabbitmq, "RabbitMQ", "Message Queue", "Handles asynchronous processing between microservices")
+    ContainerQueue(nats, "NATS JetStream", "Cloud-Native Message Stream", "Handles asynchronous processing and event streaming between microservices")
 }
 
 System_Ext(applications, "Monitored Applications")
@@ -56,16 +56,16 @@ Rel(applications, otel_cloud, "Sends OpenTelemetry data", "HTTP/JSON")
 Rel(infrastructure, ingestion, "Sends metrics/logs", "HTTP")
 Rel(edge_devices, edge_collectors, "Connects via SignalR", "WebSocket")
 
-Rel(otel_cloud, rabbitmq, "Publishes telemetry events", "AMQP")
+Rel(otel_cloud, nats, "Publishes telemetry events", "NATS")
 Rel(ingestion, clickhouse, "Bulk inserts telemetry data", "TCP")
-Rel(ingestion, rabbitmq, "Consumes telemetry events", "AMQP")
+Rel(ingestion, nats, "Consumes telemetry events", "NATS")
 
 ' Edge collectors flow
 Rel(edge_collectors, postgres, "Stores collector metadata", "TCP")
-Rel(edge_collectors, rabbitmq, "Publishes collector data", "AMQP")
+Rel(edge_collectors, nats, "Publishes collector data", "NATS")
 
 ' Data processing flow
-Rel(data_processor, rabbitmq, "Consumes raw telemetry", "AMQP")
+Rel(data_processor, nats, "Consumes raw telemetry", "NATS")
 Rel(data_processor, clickhouse, "Stores processed metrics", "TCP")
 Rel(data_processor, rules_engine, "Triggers rule evaluation", "HTTP")
 
