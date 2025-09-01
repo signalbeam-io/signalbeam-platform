@@ -15,7 +15,8 @@ System_Boundary(signalbeam, "SignalBeam Platform") {
     
     Container(control_plane, "Control Plane API", "GraphQL, HotChocolate, .NET 9", "Provides unified GraphQL API for frontend, manages dashboards, alerts, and user queries")
     Container(ingestion, "Ingestion Service", ".NET 9, ClickHouse", "Receives and processes telemetry data, performs bulk inserts to time-series database")
-    Container(edge_collectors, "Edge Collectors Service", ".NET 9, SignalR", "Manages edge collectors, handles registration, configuration, and real-time communication")
+    Container(mqtt_broker, "MQTT Broker", "Eclipse Mosquitto", "Secure MQTT broker with mTLS authentication for edge device communication")
+    Container(edge_gateway, "Edge Gateway Service", ".NET 9", "Bridges MQTT messages to NATS JetStream, manages device registration and configuration")
     Container(otel_cloud, "OTel Cloud Service", ".NET 9", "Receives OpenTelemetry data via HTTP/JSON endpoints, processes and forwards to ingestion")
     Container(data_processor, "Data Processor", ".NET 9", "Real-time processing of metrics and traces, aggregations, transformations")
     Container(rules_engine, "Rules Engine", ".NET 9", "Evaluates alerting rules, detects anomalies, triggers alerts based on telemetry patterns")
@@ -43,26 +44,27 @@ Rel(frontend, gateway, "Makes API requests", "HTTPS/GraphQL")
 
 ' Gateway routing
 Rel(gateway, control_plane, "Routes GraphQL queries", "HTTP")
-Rel(gateway, edge_collectors, "Routes collector management", "HTTP")
+Rel(gateway, edge_gateway, "Routes collector management", "HTTP")
 Rel(gateway, ingestion, "Routes data ingestion", "HTTP")
 
 ' Control Plane interactions
 Rel(control_plane, postgres, "Stores/retrieves dashboards, alerts", "TCP")
 Rel(control_plane, clickhouse, "Queries observability data", "TCP")
-Rel(control_plane, edge_collectors, "Gets collector status", "HTTP")
+Rel(control_plane, edge_gateway, "Gets collector status", "HTTP")
 
 ' Data ingestion flow
 Rel(applications, otel_cloud, "Sends OpenTelemetry data", "HTTP/JSON")
 Rel(infrastructure, ingestion, "Sends metrics/logs", "HTTP")
-Rel(edge_devices, edge_collectors, "Connects via SignalR", "WebSocket")
+Rel(edge_devices, mqtt_broker, "Publishes telemetry data", "MQTT/TLS")
+Rel(mqtt_broker, edge_gateway, "Forwards MQTT messages", "MQTT")
 
 Rel(otel_cloud, nats, "Publishes telemetry events", "NATS")
 Rel(ingestion, clickhouse, "Bulk inserts telemetry data", "TCP")
 Rel(ingestion, nats, "Consumes telemetry events", "NATS")
 
-' Edge collectors flow
-Rel(edge_collectors, postgres, "Stores collector metadata", "TCP")
-Rel(edge_collectors, nats, "Publishes collector data", "NATS")
+' Edge gateway flow
+Rel(edge_gateway, postgres, "Stores device metadata", "TCP")
+Rel(edge_gateway, nats, "Publishes device telemetry", "NATS")
 
 ' Data processing flow
 Rel(data_processor, nats, "Consumes raw telemetry", "NATS")

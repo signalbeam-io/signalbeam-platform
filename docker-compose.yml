@@ -52,7 +52,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Message Broker
+  # Message Brokers
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: signalbeam-rabbitmq
@@ -69,6 +69,27 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # MQTT Broker for Edge Devices
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: signalbeam-mosquitto
+    ports:
+      - "1883:1883"   # Standard MQTT (development)
+      - "8883:8883"   # MQTT over TLS (production)
+      - "9001:9001"   # WebSockets over TLS
+    volumes:
+      - ./infrastructure/mosquitto/config:/mosquitto/config
+      - ./infrastructure/mosquitto/certs:/mosquitto/certs
+      - ./infrastructure/mosquitto/data:/mosquitto/data
+      - ./infrastructure/mosquitto/log:/mosquitto/log
+      - mosquitto_data:/mosquitto/data
+    healthcheck:
+      test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "test", "-m", "healthcheck", "--quiet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
   # Observability Stack
   jaeger:
@@ -110,6 +131,7 @@ volumes:
   redis_data:
   clickhouse_data:
   rabbitmq_data:
+  mosquitto_data:
   prometheus_data:
   grafana_data:
 
