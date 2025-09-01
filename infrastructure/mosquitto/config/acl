@@ -1,0 +1,23 @@
+# SignalBeam MQTT Access Control List
+# Topic-based authorization for edge devices and platform services
+
+# Allow platform services full access
+user signalbeam-platform
+topic readwrite #
+
+# Edge devices can only publish to their own topics
+pattern readwrite signalbeam/%u/metrics/+
+pattern readwrite signalbeam/%u/logs/+  
+pattern readwrite signalbeam/%u/events/+
+pattern readwrite signalbeam/%u/heartbeat/+
+
+# Edge devices can read from configuration topics
+pattern read signalbeam/%u/config/+
+pattern read signalbeam/%u/commands/+
+
+# Allow heartbeat for all authenticated users
+topic read signalbeam/+/heartbeat/heartbeat
+
+# System topics (for broker status)
+topic read $SYS/broker/uptime
+topic read $SYS/broker/clients/connected

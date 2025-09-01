@@ -1,0 +1,45 @@
+# SignalBeam Edge Collector Configuration
+
+device:
+  id: ""  # Auto-generated from hostname if empty
+  name: "SignalBeam Edge Device"
+  location: "default"
+  tags:
+    environment: "development"
+    zone: "edge"
+
+mqtt:
+  broker: "tcp://localhost:1883"
+  client_id: ""  # Auto-generated if empty
+  username: ""
+  password: ""
+  qos: 1
+  retained: false
+  timeout: 30s
+  topics:
+    prefix: "signalbeam"
+    metrics: "metrics"
+    logs: "logs"
+    events: "events"
+    heartbeat: "heartbeat"
+
+collection:
+  interval: 30s
+  metrics:
+    enabled: true
+    cpu: true
+    memory: true
+    disk: true
+    network: true
+    load: true
+  logs:
+    enabled: false
+    paths: []
+    exclude: []
+  events:
+    enabled: false
+    types: []
+
+logging:
+  level: "info"  # trace, debug, info, warn, error
+  format: "text"  # text or json
