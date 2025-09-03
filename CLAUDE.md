@@ -60,6 +60,13 @@ The platform serves three main user types:
   - Needs: Time-series metrics processing, aggregations
   - Integrates with: NATS JetStream, ClickHouse
 
+### Edge/IoT Layer
+- **Edge Collector Agent** (Go)
+  - Status: ✅ Complete - cross-platform Go agent
+  - Features: MQTT communication, system metrics, configurable, lightweight
+  - Supports: Raspberry Pi, Linux, Windows, macOS, ARM/x86
+  - Integrates with: MQTT broker → Edge Gateway Service
+
 ### Alert & Rules Services
 - **Rules Engine** (.NET 9)
   - Status: ✅ Skeleton exists
@@ -117,9 +124,25 @@ cd src/frontend/signalbeam-ui && npm test
 ```
 
 ### Infrastructure Commands
+
+#### .NET Aspire (Recommended for Development)
 ```bash
-# Start development environment
+# Start entire platform with Aspire (includes all services + infrastructure)
+cd src/backend/SignalBeam.Platform.AppHost
+dotnet run
+
+# Access Aspire Dashboard: https://localhost:15888
+# Access API Gateway: https://localhost:7070
+# Access Individual Services: See Aspire dashboard for endpoints
+```
+
+#### Docker Compose (Alternative)
+```bash
+# Start infrastructure only
 docker-compose up -d
+
+# Start with application services
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 # Apply Terraform infrastructure
 cd infrastructure/terraform && terraform apply
@@ -127,29 +150,33 @@ cd infrastructure/terraform && terraform apply
 
 ## Implementation Priority
 
-### Phase 1: Core Data Flow
-1. **NATS JetStream Integration** - Message backbone
-2. **ClickHouse Schema & Integration** - Time-series storage
-3. **PostgreSQL Schema & Setup** - Metadata storage
-4. **Metrics Processor Implementation** - Core processing logic
+### Phase 1: IoT/Edge-First Data Flow (CURRENT FOCUS)
+1. ✅ **Edge Collector Agent** - Cross-platform Go agent (COMPLETED)
+2. ✅ **MQTT Broker Setup** - Eclipse Mosquitto with mTLS authentication (COMPLETED)
+3. **Edge Gateway Service** - MQTT to NATS bridge
+4. **NATS JetStream Integration** - Cloud-native message streaming
+5. **ClickHouse Schema & Integration** - Time-series storage for edge data
+6. **Device Registration System** - Edge device management
 
-### Phase 2: Processing Pipeline
-5. **Data Processor Service** - Real-time processing
-6. **Enhanced Ingestion Service** - Bulk data handling
-7. **OTel Cloud Enhancement** - OpenTelemetry processing
-8. **Redis Caching Layer** - Performance optimization
+### Phase 2: Core Processing Pipeline
+7. **Data Processor Service** - Real-time processing
+8. **Metrics Processor Implementation** - Time-series processing
+9. **Enhanced Ingestion Service** - Bulk data handling
+10. **PostgreSQL Schema & Setup** - Metadata storage
+11. **Redis Caching Layer** - Performance optimization
 
-### Phase 3: User Interface & Management
-9. **Control Plane GraphQL API** - Unified API layer
-10. **SignalBeam UI Enhancement** - Dashboards and visualization
-11. **Edge Collectors SignalR** - Real-time edge communication
-12. **API Gateway Enhancement** - Request routing and auth
+### Phase 3: User Interface & Monitoring
+12. **Edge Monitoring Dashboard** - Device health and metrics visualization
+13. **Control Plane GraphQL API** - Unified API layer
+14. **SignalBeam UI Enhancement** - Full observability dashboards
+15. **API Gateway Enhancement** - Request routing and auth
 
-### Phase 4: Alerting & Operations
-13. **Rules Engine Logic** - Alert rule processing
-14. **Alerting Service Integration** - Multi-channel notifications
-15. **Authentication Integration** - External auth provider
-16. **Monitoring & Observability** - Self-monitoring
+### Phase 4: Enterprise Features
+16. **Rules Engine Logic** - Alert rule processing
+17. **Alerting Service Integration** - Multi-channel notifications
+18. **OTel Cloud Enhancement** - OpenTelemetry processing
+19. **Authentication Integration** - External auth provider
+20. **Monitoring & Observability** - Self-monitoring
 
 ## Key Integrations Needed
 
@@ -165,7 +192,7 @@ cd infrastructure/terraform && terraform apply
 2. **Processing Flow**: NATS JetStream → Data Processor → ClickHouse → Rules Engine
 3. **Alert Flow**: Rules Engine → Alerting Service → External Notifications
 4. **Query Flow**: UI → Gateway → Control Plane → ClickHouse/PostgreSQL
-5. **Edge Flow**: Edge Devices → Edge Collectors → NATS JetStream → Data Processing
+5. **Edge Flow**: Edge Devices → MQTT Broker (mTLS) → Edge Gateway Service → NATS JetStream → Data Processing
 
 ## Technology Stack Reference
 
