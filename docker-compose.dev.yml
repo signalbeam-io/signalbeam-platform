@@ -1,0 +1,158 @@
+# Development Docker Compose Override
+# Builds local images for SignalBeam services
+version: '3.8'
+
+services:
+  # SignalBeam Platform Services
+  signalbeam-gateway:
+    build:
+      context: ./src/backend
+      dockerfile: SignalBeam.Platform.Gateway/Dockerfile
+    container_name: signalbeam-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - signalbeam-network
+    restart: unless-stopped
+
+  signalbeam-control-plane:
+    build:
+      context: ./src/backend
+      dockerfile: SignalBeam.Platform.ControlPlane/Dockerfile
+    container_name: signalbeam-control-plane
+    ports:
+      - "8081:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      - postgres
+      - clickhouse
+      - redis
+    networks:
+      - signalbeam-network
+    restart: unless-stopped
+
+  signalbeam-ingestion:
+    build:
+      context: ./src/backend
+      dockerfile: SignalBeam.Platform.Ingestion/Dockerfile
+    container_name: signalbeam-ingestion
+    ports:
+      - "8082:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      - clickhouse
+      - nats
+    networks:
+      - signalbeam-network
+    restart: unless-stopped
+
+  signalbeam-edge-collectors:
+    build:
+      context: ./src/backend
+      dockerfile: SignalBeam.Platform.EdgeCollectors/Dockerfile
+    container_name: signalbeam-edge-collectors
+    ports:
+      - "8083:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      - postgres
+      - mosquitto
+      - nats
+    networks:
+      - signalbeam-network
+    restart: unless-stopped
+
+  signalbeam-metrics-processor:
+    build:
+      context: ./src/backend
+      dockerfile: SignalBeam.Platform.MetricsProcessor/Dockerfile
+    container_name: signalbeam-metrics-processor
+    ports:
+      - "8084:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      - clickhouse
+      - nats
+    networks:
+      - signalbeam-network
+    restart: unless-stopped
+
+  signalbeam-rules-engine:
+    build:
+      context: ./src/backend
+      dockerfile: SignalBeam.Platform.RulesEngine/Dockerfile
+    container_name: signalbeam-rules-engine
+    ports:
+      - "8085:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      - postgres
+      - clickhouse
+    networks:
+      - signalbeam-network
+    restart: unless-stopped
+
+  signalbeam-alerting:
+    build:
+      context: ./src/backend
+      dockerfile: SignalBeam.Platform.Alerting/Dockerfile
+    container_name: signalbeam-alerting
+    ports:
+      - "8086:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    networks:
+      - signalbeam-network
+    restart: unless-stopped
+
+  signalbeam-frontend:
+    build:
+      context: ./src/frontend/signalbeam-ui
+      dockerfile: Dockerfile
+    container_name: signalbeam-frontend
+    ports:
+      - "3001:8080"
+    networks:
+      - signalbeam-network
+    restart: unless-stopped
+
+  # NATS JetStream (will be needed for Issue #27)
+  nats:
+    image: nats:2.10-alpine
+    container_name: signalbeam-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command:
+      - "--jetstream"
+      - "--store_dir=/data"
+      - "--http_port=8222"
+    volumes:
+      - nats_data:/data
+    networks:
+      - signalbeam-network
+    restart: unless-stopped
+
+volumes:
+  nats_data:
+
+networks:
+  signalbeam-network:
+    external: true

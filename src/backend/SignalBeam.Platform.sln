@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalBeam.Platform.AppHost
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalBeam.Platform.ServiceDefaults", "SignalBeam.Platform.ServiceDefaults\SignalBeam.Platform.ServiceDefaults.csproj", "{974F2340-2EA1-4F1A-8E5D-0B49F76B7DA7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalBeam.Platform.ApiService", "SignalBeam.Platform.ApiService\SignalBeam.Platform.ApiService.csproj", "{827DD3D1-171D-4CD7-BDBD-68C566D9362F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalBeam.Platform.Gateway", "SignalBeam.Platform.Gateway\SignalBeam.Platform.Gateway.csproj", "{8C37AC1E-F746-4B03-BCE6-793D4450DB8F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalBeam.Platform.Ingestion", "SignalBeam.Platform.Ingestion\SignalBeam.Platform.Ingestion.csproj", "{A8CFEA17-8094-40F1-A8C7-103A59D6B8BE}"
@@ -61,18 +59,6 @@ Global
 		{974F2340-2EA1-4F1A-8E5D-0B49F76B7DA7}.Release|x64.Build.0 = Release|Any CPU
 		{974F2340-2EA1-4F1A-8E5D-0B49F76B7DA7}.Release|x86.ActiveCfg = Release|Any CPU
 		{974F2340-2EA1-4F1A-8E5D-0B49F76B7DA7}.Release|x86.Build.0 = Release|Any CPU
-		{827DD3D1-171D-4CD7-BDBD-68C566D9362F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{827DD3D1-171D-4CD7-BDBD-68C566D9362F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{827DD3D1-171D-4CD7-BDBD-68C566D9362F}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{827DD3D1-171D-4CD7-BDBD-68C566D9362F}.Debug|x64.Build.0 = Debug|Any CPU
-		{827DD3D1-171D-4CD7-BDBD-68C566D9362F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{827DD3D1-171D-4CD7-BDBD-68C566D9362F}.Debug|x86.Build.0 = Debug|Any CPU
-		{827DD3D1-171D-4CD7-BDBD-68C566D9362F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{827DD3D1-171D-4CD7-BDBD-68C566D9362F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{827DD3D1-171D-4CD7-BDBD-68C566D9362F}.Release|x64.ActiveCfg = Release|Any CPU
-		{827DD3D1-171D-4CD7-BDBD-68C566D9362F}.Release|x64.Build.0 = Release|Any CPU
-		{827DD3D1-171D-4CD7-BDBD-68C566D9362F}.Release|x86.ActiveCfg = Release|Any CPU
-		{827DD3D1-171D-4CD7-BDBD-68C566D9362F}.Release|x86.Build.0 = Release|Any CPU
 		{8C37AC1E-F746-4B03-BCE6-793D4450DB8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8C37AC1E-F746-4B03-BCE6-793D4450DB8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C37AC1E-F746-4B03-BCE6-793D4450DB8F}.Debug|x64.ActiveCfg = Debug|Any CPU

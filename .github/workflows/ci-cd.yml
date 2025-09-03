@@ -1,0 +1,296 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Backend .NET Services Build and Test
+  backend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - SignalBeam.Platform.Gateway
+          - SignalBeam.Platform.ControlPlane
+          - SignalBeam.Platform.Ingestion
+          - SignalBeam.Platform.EdgeCollectors
+          - SignalBeam.Platform.OtelCloud
+          - SignalBeam.Platform.MetricsProcessor
+          - SignalBeam.Platform.RulesEngine
+          - SignalBeam.Platform.Alerting
+          - SignalBeam.Platform.Auth
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+          
+    - name: Restore dependencies
+      run: dotnet restore src/backend/SignalBeam.Platform.sln
+      
+    - name: Build service
+      run: dotnet build src/backend/${{ matrix.service }}/${{ matrix.service }}.csproj --no-restore --configuration Release
+      
+    - name: Test service
+      run: dotnet test src/backend/${{ matrix.service }}/${{ matrix.service }}.csproj --no-build --configuration Release --verbosity normal
+      
+    - name: Publish service
+      run: dotnet publish src/backend/${{ matrix.service }}/${{ matrix.service }}.csproj --no-build --configuration Release --output ./publish/${{ matrix.service }}
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.service }}-build
+        path: ./publish/${{ matrix.service }}
+        retention-days: 1
+
+  # Frontend Build and Test
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/frontend/signalbeam-ui
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: src/frontend/signalbeam-ui/package-lock.json
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Lint code
+      run: npm run lint
+      
+    - name: Type check
+      run: npm run type-check
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Build application
+      run: npm run build
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: src/frontend/signalbeam-ui/dist
+        retention-days: 1
+
+  # Edge Collector Go Build (Cross-platform)
+  edge-collector:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            suffix: linux-amd64
+          - goos: linux
+            goarch: arm64
+            suffix: linux-arm64
+          - goos: linux
+            goarch: arm
+            goarm: "7"
+            suffix: linux-arm
+          - goos: windows
+            goarch: amd64
+            suffix: windows-amd64.exe
+          - goos: darwin
+            goarch: amd64
+            suffix: darwin-amd64
+          - goos: darwin
+            goarch: arm64
+            suffix: darwin-arm64
+            
+    defaults:
+      run:
+        working-directory: src/edge-agents/signalbeam-collector
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache-dependency-path: src/edge-agents/signalbeam-collector/go.sum
+        
+    - name: Verify dependencies
+      run: |
+        go mod tidy
+        git diff --exit-code go.mod go.sum || (echo "go.mod or go.sum is not up to date. Please run 'go mod tidy'" && exit 1)
+        
+    - name: Get dependencies
+      run: go mod download
+      
+    - name: Run tests
+      run: go test ./...
+      
+    - name: Build binary
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}
+        GOARM: ${{ matrix.goarm }}
+      run: |
+        go build -ldflags="-w -s" -o signalbeam-collector-${{ matrix.suffix }} ./cmd
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: edge-collector-${{ matrix.suffix }}
+        path: src/edge-agents/signalbeam-collector/signalbeam-collector-${{ matrix.suffix }}
+        retention-days: 1
+
+  # Docker Images Build and Push
+  docker:
+    needs: [backend, frontend, edge-collector]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    
+    strategy:
+      matrix:
+        service:
+          - name: gateway
+            context: src/backend/SignalBeam.Platform.Gateway
+            dockerfile: Dockerfile
+          - name: control-plane
+            context: src/backend/SignalBeam.Platform.ControlPlane
+            dockerfile: Dockerfile
+          - name: ingestion
+            context: src/backend/SignalBeam.Platform.Ingestion
+            dockerfile: Dockerfile
+          - name: edge-collectors
+            context: src/backend/SignalBeam.Platform.EdgeCollectors
+            dockerfile: Dockerfile
+          - name: otel-cloud
+            context: src/backend/SignalBeam.Platform.OtelCloud
+            dockerfile: Dockerfile
+          - name: metrics-processor
+            context: src/backend/SignalBeam.Platform.MetricsProcessor
+            dockerfile: Dockerfile
+          - name: rules-engine
+            context: src/backend/SignalBeam.Platform.RulesEngine
+            dockerfile: Dockerfile
+          - name: alerting
+            context: src/backend/SignalBeam.Platform.Alerting
+            dockerfile: Dockerfile
+          - name: auth
+            context: src/backend/SignalBeam.Platform.Auth
+            dockerfile: Dockerfile
+          - name: frontend
+            context: src/frontend/signalbeam-ui
+            dockerfile: Dockerfile
+    
+    permissions:
+      contents: read
+      packages: write
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service.name }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=raw,value=latest,enable={{is_default_branch}}
+          
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Download build artifacts
+      if: matrix.service.name != 'frontend'
+      uses: actions/download-artifact@v4
+      with:
+        name: SignalBeam.Platform.${{ matrix.service.name == 'gateway' && 'Gateway' || matrix.service.name == 'control-plane' && 'ControlPlane' || matrix.service.name == 'edge-collectors' && 'EdgeCollectors' || matrix.service.name == 'otel-cloud' && 'OtelCloud' || matrix.service.name == 'metrics-processor' && 'MetricsProcessor' || matrix.service.name == 'rules-engine' && 'RulesEngine' || matrix.service.name == 'alerting' && 'Alerting' || matrix.service.name == 'auth' && 'Auth' || 'Ingestion' }}-build
+        path: ./publish/
+        
+    - name: Download frontend artifacts
+      if: matrix.service.name == 'frontend'
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: ./dist/
+        
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ${{ matrix.service.context }}
+        file: ${{ matrix.service.context }}/${{ matrix.service.dockerfile }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        platforms: linux/amd64,linux/arm64
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Create Release
+  release:
+    needs: [backend, frontend, edge-collector, docker]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    permissions:
+      contents: write
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./artifacts/
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          ./artifacts/edge-collector-*/signalbeam-collector-*
+        generate_release_notes: true
+        draft: false
+        prerelease: ${{ contains(github.ref, '-') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
